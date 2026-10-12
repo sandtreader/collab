@@ -108,8 +108,9 @@ conflict.
 
 ## Running the relay
 
-A shared instance runs at `wss://sandtreader.com/collab`. Any app can use it
-with its own `app` name; sessions are isolated per app.
+One relay can serve several apps: each app's hostname proxies its own
+`/collab` path to the same relay port, and sessions are isolated per `app`
+name.
 
 
 ```bash
