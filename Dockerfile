@@ -14,10 +14,11 @@ FROM node:22-alpine
 WORKDIR /app
 RUN addgroup -S collab && adduser -S collab -G collab
 COPY --from=build /app/dist ./dist
-COPY package.json ./
 # The relay's only runtime dependency is ws, declared as an optional peer so
-# browser consumers don't pull it in. Install just that here.
-RUN npm install --omit=dev --legacy-peer-deps --no-package-lock --ignore-scripts ws@^8.20.0 \
+# browser consumers don't pull it in. A minimal ESM package.json (the dist
+# files are ES modules) plus ws alone is the whole runtime.
+RUN echo '{"name":"collab-relay","private":true,"type":"module"}' > package.json \
+    && npm install --no-package-lock --ignore-scripts ws@^8.20.0 \
     && npm cache clean --force
 USER collab
 EXPOSE 2901
