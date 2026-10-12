@@ -2,7 +2,7 @@
 // two or three CollabClients converging on one document.
 
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-import { createRelay, type Relay } from "../src/server/index.js";
+import { createRelay, appFromUrl, type Relay } from "../src/server/index.js";
 import { CollabClient } from "../src/client/index.js";
 import { MemoryDocument, waitFor, sleep } from "./helpers.js";
 
@@ -109,6 +109,26 @@ describe("relay + client", () => {
     // b never joined again, so it must not have been handed a second snapshot
     expect(b.doc.snapshots).toBe(1);
     expect(c.doc.snapshots).toBe(1);
+  });
+
+  it("still keeps apps apart when the relay sits behind a path prefix", async () => {
+    // e.g. nginx `location /collab { proxy_pass http://relay; }` leaves the prefix in place
+    const a = join("one", "pfx", "a");
+    await waitFor(() => a.client.status === "connected");
+    const direct = new CollabClient({ app: "one", userId: "b", displayName: "B", document: new MemoryDocument() });
+    clients.push(direct);
+    direct.connect("pfx", `${url}/collab/deeper`);
+    await waitFor(() => direct.status === "connected");
+    expect(direct.users.has("a")).toBe(true);
+  });
+
+  it("resolves the app namespace from query, then last path segment, then fallback", () => {
+    expect(appFromUrl("/?app=synflo", "d")).toBe("synflo");
+    expect(appFromUrl("/collab?app=synflo", "d")).toBe("synflo");
+    expect(appFromUrl("/collab/synflo", "d")).toBe("synflo");
+    expect(appFromUrl("/synflo", "d")).toBe("synflo");
+    expect(appFromUrl("/", "d")).toBe("d");
+    expect(appFromUrl(undefined, "d")).toBe("d");
   });
 
   it("closes a socket whose first message is not a join", async () => {

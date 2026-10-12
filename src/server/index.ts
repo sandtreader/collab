@@ -10,9 +10,9 @@
 //     `snapshot_response` back only to the requester(s)
 //   - broadcasts presence / join / leave to everyone except the sender
 //
-// Sessions are namespaced by the WebSocket path: `ws://host/<app>` keys
-// sessions as `<app>:<sessionId>`, so two apps can share one relay without
-// being able to join each other's sessions.
+// Sessions are namespaced by app: `ws://host?app=<app>` (or a trailing
+// path segment) keys sessions as `<app>:<sessionId>`, so two apps can share
+// one relay without being able to join each other's sessions.
 
 import { WebSocketServer, WebSocket } from "ws";
 import type { IncomingMessage, Server as HttpServer } from "node:http";
@@ -223,9 +223,17 @@ export function createRelay(opts: RelayOptions = {}): Relay {
   };
 }
 
+/**
+ * App namespace from the connection URL. Prefers the `app` query parameter
+ * (what the client sends; survives reverse-proxy path rewriting), then the
+ * last path segment, then the fallback.
+ */
 export function appFromUrl(url: string | undefined, fallback: string): string {
   if (!url) return fallback;
-  const path = url.split("?")[0];
-  const seg = path.split("/").filter(Boolean)[0];
-  return seg ? decodeURIComponent(seg) : fallback;
+  const [path, query = ""] = url.split("?", 2);
+  const fromQuery = new URLSearchParams(query).get("app");
+  if (fromQuery) return fromQuery;
+  const segs = path.split("/").filter(Boolean);
+  const last = segs[segs.length - 1];
+  return last ? decodeURIComponent(last) : fallback;
 }

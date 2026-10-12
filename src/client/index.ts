@@ -40,7 +40,7 @@ export interface RemotePresence {
 }
 
 export interface CollabClientOptions {
-  /** Namespaces sessions on the relay: connects to `<serverUrl>/<app>`. */
+  /** Namespaces sessions on the relay: connects to `<serverUrl>?app=<app>`. */
   app: string;
   userId: string;
   displayName: string;
@@ -197,8 +197,11 @@ export class CollabClient {
     if (this.snapshotTimer) { clearTimeout(this.snapshotTimer); this.snapshotTimer = null; }
   }
 
+  /** `<serverUrl>?app=<app>`: a query parameter survives any reverse-proxy path mapping. */
   private socketUrl(): string {
-    return `${this.serverUrl!.replace(/\/+$/, "")}/${encodeURIComponent(this.app)}`;
+    const base = this.serverUrl!;
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}app=${encodeURIComponent(this.app)}`;
   }
 
   private openSocket() {

@@ -119,8 +119,10 @@ import { createRelay } from "@sandtreader/collab/server";
 const relay = createRelay({ port: 2901, log: console.log });
 ```
 
-Clients connect to `ws://host:2901/<app>`. Sessions are keyed by app and
-session ID, so one relay serves several apps without cross-joining.
+The client connects to `<serverUrl>?app=<app>`. Sessions are keyed by app and
+session ID, so one relay serves several apps without cross-joining. The
+query parameter survives any reverse-proxy path mapping; the relay also
+accepts the app as the last path segment.
 
 The relay keeps no document state. Phase 2 (planned) has the server apply
 changes itself using the same `applyChange`, answer snapshots directly, and

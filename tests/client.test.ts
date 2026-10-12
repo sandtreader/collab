@@ -46,11 +46,11 @@ describe("CollabClient handshake", () => {
   beforeEach(() => { FakeSocket.instances = []; vi.useFakeTimers(); });
   afterEach(() => { vi.useRealTimers(); });
 
-  it("connects to <server>/<app> and joins", () => {
+  it("connects to <server>?app=<app> and joins", () => {
     const client = makeClient(new MemoryDocument());
-    client.connect("abc", "ws://relay:1/");
+    client.connect("abc", "ws://relay:1/collab");
     const ws = FakeSocket.instances[0];
-    expect(ws.url).toBe("ws://relay:1/test");
+    expect(ws.url).toBe("ws://relay:1/collab?app=test");
     expect(client.status).toBe("connecting");
     ws.open();
     expect(client.status).toBe("joining");
