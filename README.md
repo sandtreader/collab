@@ -108,6 +108,10 @@ conflict.
 
 ## Running the relay
 
+A shared instance runs at `wss://sandtreader.com/collab`. Any app can use it
+with its own `app` name; sessions are isolated per app.
+
+
 ```bash
 PORT=2901 npx collab-relay
 ```
